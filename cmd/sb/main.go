@@ -15,10 +15,15 @@ func main() {
 	}
 
 	sbCmd.AddCommand(versionCmd)
+	sbCmd.AddCommand(balancesCmd())
 
 	err := sbCmd.Execute()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
+}
+
+func incorrectUsageErr() error {
+	return fmt.Errorf("incorrect usage")
 }
