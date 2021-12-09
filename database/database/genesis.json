@@ -1,0 +1,8 @@
+
+{
+    "genesis_time" : "2021-12-01T00:00:00.000000000Z",
+    "chain_id": "simone-blockchain-ledger",
+    "balances": {
+        "simone": 1000000
+    }
+}

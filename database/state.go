@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"path/filepath"
 	"time"
 )
 
@@ -17,13 +16,13 @@ type State struct {
 	latestBlockHash Hash
 }
 
-func NewStateFromDisk() (*State, error) {
-	cwd, err := os.Getwd()
+func NewStateFromDisk(dataDir string) (*State, error) {
+	err := initDataDirIfNotExists(dataDir)
 	if err != nil {
 		return nil, err
 	}
 
-	gen, err := loadGenesis(filepath.Join(cwd, "database", "genesis.json"))
+	gen, err := loadGenesis(getGenesisJsonFilePath(dataDir))
 	if err != nil {
 		return nil, err
 	}
@@ -34,9 +33,7 @@ func NewStateFromDisk() (*State, error) {
 	}
 
 	f, err := os.OpenFile(
-		filepath.Join(cwd, "database", "block.db"),
-		os.O_APPEND|os.O_RDWR,
-		0600)
+		getBlocksDbFilePath(dataDir), os.O_APPEND|os.O_RDWR, 0600)
 	if err != nil {
 		return nil, err
 	}
@@ -54,8 +51,7 @@ func NewStateFromDisk() (*State, error) {
 		var blockFs BlockFS
 		err = json.Unmarshal(blockFsJson, &blockFs)
 		if err != nil {
-			return nil, fmt.Errorf(
-				"error whilst unmarshalling block: %w", err)
+			return nil, err
 		}
 
 		err = state.applyBlock(blockFs.Value)
@@ -145,7 +141,7 @@ func (s *State) apply(tx Tx) error {
 		return nil
 	}
 
-	if tx.Value > s.Balances[tx.From] {
+	if s.Balances[tx.From] < tx.Value {
 		return fmt.Errorf("insufficient funds")
 	}
 
