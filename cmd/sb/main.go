@@ -17,8 +17,8 @@ func main() {
 	}
 
 	sbCmd.AddCommand(versionCmd)
+	sbCmd.AddCommand(runCmd())
 	sbCmd.AddCommand(balancesCmd())
-	sbCmd.AddCommand(txCmd())
 
 	err := sbCmd.Execute()
 	if err != nil {
