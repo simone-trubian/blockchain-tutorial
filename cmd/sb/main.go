@@ -19,6 +19,7 @@ func main() {
 	sbCmd.AddCommand(versionCmd)
 	sbCmd.AddCommand(runCmd())
 	sbCmd.AddCommand(balancesCmd())
+	sbCmd.AddCommand(migrateCmd())
 
 	err := sbCmd.Execute()
 	if err != nil {
