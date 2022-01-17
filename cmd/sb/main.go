@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/simone-trubian/blockchain-tutorial/fs"
 	"github.com/spf13/cobra"
 )
 
@@ -35,6 +36,12 @@ func addDefaultRequiredFlags(cmd *cobra.Command) {
 		"",
 		"Absolute path to the node data dir where the DB will/is stored")
 	cmd.MarkFlagRequired(flagDataDir)
+}
+
+func getDataDirFromCmd(cmd *cobra.Command) string {
+	dataDir, _ := cmd.Flags().GetString(flagDataDir)
+
+	return fs.ExpandPath(dataDir)
 }
 
 func incorrectUsageErr() error {

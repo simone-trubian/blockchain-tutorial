@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/simone-trubian/blockchain-tutorial/database"
-	"github.com/spf13/cobra"
 	"os"
 	"time"
+
+	"github.com/simone-trubian/blockchain-tutorial/database"
+	"github.com/spf13/cobra"
 )
 
 var migrateCmd = func() *cobra.Command {
@@ -13,9 +14,8 @@ var migrateCmd = func() *cobra.Command {
 		Use:   "migrate",
 		Short: "Migrates the blockchain database according to new business rules.",
 		Run: func(cmd *cobra.Command, args []string) {
-			dataDir, _ := cmd.Flags().GetString(flagDataDir)
 
-			state, err := database.NewStateFromDisk(dataDir)
+			state, err := database.NewStateFromDisk(getDataDirFromCmd(cmd))
 			if err != nil {
 				fmt.Fprintln(os.Stderr, err)
 				os.Exit(1)
