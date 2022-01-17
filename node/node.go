@@ -1,6 +1,7 @@
 package node
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -8,6 +9,7 @@ import (
 )
 
 const DefaultHTTPort = 8080
+const endpointStatus = "/node/status"
 
 type PeerNode struct {
 	IP          string `json:"ip"`
@@ -22,14 +24,17 @@ type Node struct {
 
 	state *database.State
 
-	knownPeers []PeerNode
+	knownPeers map[string]PeerNode
 }
 
 func New(dataDir string, port uint64, bootstrap PeerNode) *Node {
+	knownPeers := make(map[string]PeerNode)
+	knownPeers[bootstrap.TcpAddress()] = bootstrap
+
 	return &Node{
 		dataDir:    dataDir,
 		port:       port,
-		knownPeers: []PeerNode{bootstrap},
+		knownPeers: knownPeers,
 	}
 }
 
@@ -38,7 +43,12 @@ func NewPeerNode(
 	return PeerNode{ip, port, isBootstrap, isActive}
 }
 
+func (pn PeerNode) TcpAddress() string {
+	return fmt.Sprintf("%s:%d", pn.IP, pn.Port)
+}
+
 func (n *Node) Run() error {
+	ctx := context.Background()
 	fmt.Printf("Listening on HTTP port: %d\n", n.port)
 
 	state, err := database.NewStateFromDisk(n.dataDir)
@@ -46,6 +56,8 @@ func (n *Node) Run() error {
 		return err
 	}
 	defer state.Close()
+
+	go n.sync(ctx)
 
 	n.state = state
 
@@ -60,7 +72,7 @@ func (n *Node) Run() error {
 		})
 
 	http.HandleFunc(
-		"/node/status", func(w http.ResponseWriter, r *http.Request) {
+		endpointStatus, func(w http.ResponseWriter, r *http.Request) {
 			statusHandler(w, r, n)
 		})
 
