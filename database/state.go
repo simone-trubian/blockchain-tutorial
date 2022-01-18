@@ -16,6 +16,7 @@ type State struct {
 
 	latestBlock     Block
 	latestBlockHash Hash
+	hasGenesisBlock bool
 }
 
 func NewStateFromDisk(dataDir string) (*State, error) {
@@ -42,7 +43,7 @@ func NewStateFromDisk(dataDir string) (*State, error) {
 
 	scanner := bufio.NewScanner(f)
 
-	state := &State{balances, make([]Tx, 0), f, Block{}, Hash{}}
+	state := &State{balances, make([]Tx, 0), f, Block{}, Hash{}, false}
 
 	for scanner.Scan() {
 		if err := scanner.Err(); err != nil {
@@ -68,6 +69,7 @@ func NewStateFromDisk(dataDir string) (*State, error) {
 
 		state.latestBlock = blockFs.Value
 		state.latestBlockHash = blockFs.Key
+		state.hasGenesisBlock = true
 	}
 
 	return state, nil
@@ -115,8 +117,17 @@ func (s *State) AddBlock(b Block) (Hash, error) {
 	s.Balances = pendingState.Balances
 	s.latestBlockHash = blockHash
 	s.latestBlock = b
+	s.hasGenesisBlock = true
 
 	return blockHash, nil
+}
+
+func (s *State) NextBlockNumber() uint64 {
+	if !s.hasGenesisBlock {
+		return uint64(0)
+	}
+
+	return s.LatestBlock().Header.Number + 1
 }
 
 func (s *State) LatestBlock() Block {
@@ -133,6 +144,7 @@ func (s *State) Close() error {
 
 func (s *State) copy() State {
 	c := State{}
+	c.hasGenesisBlock = s.hasGenesisBlock
 	c.latestBlock = s.latestBlock
 	c.latestBlockHash = s.latestBlockHash
 	c.txMempool = make([]Tx, len(s.txMempool))
@@ -149,21 +161,21 @@ func (s *State) copy() State {
 	return c
 }
 
-// applyBlock verifies if a block can be added to the blockchain.
+// applyBlock verifies if block can be added to the blockchain.
 //
-// Block metadata are verified as well as all transactions within the block
-// (sufficient balances, etc).
+// Block metadata are verified as well as transactions within (sufficient balances, etc).
 func applyBlock(b Block, s State) error {
 	nextExpectedBlockNumber := s.latestBlock.Header.Number + 1
 
-	if b.Header.Number != nextExpectedBlockNumber {
+	if s.hasGenesisBlock && b.Header.Number != nextExpectedBlockNumber {
 		return fmt.Errorf(
-			"next expected block must '%d' not '%d'",
+			"next expected block must be '%d' not '%d'",
 			nextExpectedBlockNumber,
 			b.Header.Number)
 	}
 
-	if s.latestBlock.Header.Number > 0 &&
+	if s.hasGenesisBlock &&
+		s.latestBlock.Header.Number > 0 &&
 		!reflect.DeepEqual(b.Header.Parent, s.latestBlockHash) {
 		return fmt.Errorf(
 			"next block parent hash must be '%x' not '%x'",
@@ -192,11 +204,7 @@ func applyTx(tx Tx, s *State) error {
 	}
 
 	if tx.Value > s.Balances[tx.From] {
-		return fmt.Errorf(
-			"wrong TX. Sender '%s' balance is %d TBB. Tx cost is %d TBB",
-			tx.From,
-			s.Balances[tx.From],
-			tx.Value)
+		return fmt.Errorf("wrong TX. Sender '%s' balance is %d TBB. Tx cost is %d TBB", tx.From, s.Balances[tx.From], tx.Value)
 	}
 
 	s.Balances[tx.From] -= tx.Value

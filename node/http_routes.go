@@ -44,7 +44,8 @@ type AddPeerRes struct {
 	Error   string `json:"error"`
 }
 
-func listBalancesHandler(w http.ResponseWriter, r *http.Request, state *database.State) {
+func listBalancesHandler(
+	w http.ResponseWriter, r *http.Request, state *database.State) {
 	writeRes(w, BalancesRes{state.LatestBlockHash(), state.Balances})
 }
 
@@ -56,11 +57,15 @@ func txAddHandler(w http.ResponseWriter, r *http.Request, state *database.State)
 		return
 	}
 
-	tx := database.NewTx(database.NewAccount(req.From), database.NewAccount(req.To), req.Value, req.Data)
+	tx := database.NewTx(
+		database.NewAccount(req.From),
+		database.NewAccount(req.To),
+		req.Value,
+		req.Data)
 
 	block := database.NewBlock(
 		state.LatestBlockHash(),
-		state.LatestBlock().Header.Number+1,
+		state.NextBlockNumber(),
 		uint64(time.Now().Unix()),
 		[]database.Tx{tx},
 	)
