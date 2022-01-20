@@ -40,5 +40,10 @@ func runCmd() *cobra.Command {
 		node.DefaultIP,
 		"exposed IP for communication with peers")
 
+	runCmd.Flags().Uint64(
+		flagPort,
+		node.DefaultHTTPort,
+		"exposed HTTP port for communication with peers")
+
 	return runCmd
 }
