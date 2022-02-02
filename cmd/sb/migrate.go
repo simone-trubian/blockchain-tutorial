@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
-	"os"
+	"time"
 
 	"github.com/simone-trubian/blockchain-tutorial/database"
 	"github.com/simone-trubian/blockchain-tutorial/node"
@@ -15,36 +15,53 @@ var migrateCmd = func() *cobra.Command {
 		Use:   "migrate",
 		Short: "Migrates the blockchain database according to new business rules.",
 		Run: func(cmd *cobra.Command, args []string) {
-			state, err := database.NewStateFromDisk(getDataDirFromCmd(cmd))
-			if err != nil {
-				fmt.Fprintln(os.Stderr, err)
-				os.Exit(1)
-			}
-			defer state.Close()
+			miner, _ := cmd.Flags().GetString(flagMiner)
+			ip, _ := cmd.Flags().GetString(flagIP)
+			port, _ := cmd.Flags().GetUint64(flagPort)
 
-			pendingBlock := node.NewPendingBlock(
-				database.Hash{},
-				state.NextBlockNumber(),
+			peer := node.NewPeerNode(
+				"127.0.0.1",
+				8080,
+				true,
 				database.NewAccount("simone"),
-				[]database.Tx{
-					database.NewTx("simone", "simone", 3, ""),
-					database.NewTx("simone", "tanya", 2000, ""),
-					database.NewTx("tanya", "simone", 1, ""),
-					database.NewTx("tanya", "ugo", 1000, ""),
-					database.NewTx("tanya", "simone", 50, ""),
-					database.NewTx("simone", "andrej", 24700, "reward"),
-				},
+				false,
 			)
 
-			_, err = node.Mine(context.Background(), pendingBlock)
+			n := node.New(getDataDirFromCmd(cmd), ip, port, database.NewAccount(miner), peer)
+
+			n.AddPendingTX(database.NewTx("simone", "simone", 3, ""), peer)
+			n.AddPendingTX(database.NewTx("simone", "tanya", 20000, ""), peer)
+			n.AddPendingTX(database.NewTx("tanya", "simone", 1, ""), peer)
+			n.AddPendingTX(database.NewTx("tanya", "ugo", 1000, ""), peer)
+			n.AddPendingTX(database.NewTx("tanya", "simone", 50, ""), peer)
+
+			ctx, closeNode := context.WithTimeout(context.Background(), time.Minute*15)
+
+			go func() {
+				ticker := time.NewTicker(time.Second * 10)
+
+				for {
+					select {
+					case <-ticker.C:
+						if !n.LatestBlockHash().IsEmpty() {
+							closeNode()
+							return
+						}
+					}
+				}
+			}()
+
+			err := n.Run(ctx)
 			if err != nil {
-				fmt.Fprintln(os.Stderr, err)
-				os.Exit(1)
+				fmt.Println(err)
 			}
 		},
 	}
 
 	addDefaultRequiredFlags(migrateCmd)
+	migrateCmd.Flags().String(flagMiner, node.DefaultMiner, "miner account of this node to receive block rewards")
+	migrateCmd.Flags().String(flagIP, node.DefaultIP, "exposed IP for communication with peers")
+	migrateCmd.Flags().Uint64(flagPort, node.DefaultHTTPort, "exposed HTTP port for communication with peers")
 
 	return migrateCmd
 }
