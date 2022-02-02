@@ -11,6 +11,7 @@ import (
 const flagDataDir = "datadir"
 const flagPort = "port"
 const flagIP = "ip"
+const flagMiner = "miner"
 
 func main() {
 	var sbCmd = &cobra.Command{

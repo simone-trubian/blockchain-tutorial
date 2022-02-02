@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/simone-trubian/blockchain-tutorial/database"
 	"github.com/simone-trubian/blockchain-tutorial/node"
 	"github.com/spf13/cobra"
 )
@@ -14,6 +15,7 @@ func runCmd() *cobra.Command {
 		Use:   "run",
 		Short: "Launches the SB node and its HTTP API.",
 		Run: func(cmd *cobra.Command, args []string) {
+			miner, _ := cmd.Flags().GetString(flagMiner)
 			ip, _ := cmd.Flags().GetString(flagIP)
 			port, _ := cmd.Flags().GetUint64(flagPort)
 
@@ -23,10 +25,16 @@ func runCmd() *cobra.Command {
 				"node.sb",
 				8080,
 				true,
+				database.NewAccount("simone"),
 				false,
 			)
 
-			n := node.New(getDataDirFromCmd(cmd), ip, port, bootstrap)
+			n := node.New(
+				getDataDirFromCmd(cmd),
+				ip,
+				port,
+				database.NewAccount((miner)),
+				bootstrap)
 			err := n.Run(context.Background())
 			if err != nil {
 				fmt.Println(err)
@@ -45,6 +53,11 @@ func runCmd() *cobra.Command {
 		flagPort,
 		node.DefaultHTTPort,
 		"exposed HTTP port for communication with peers")
+
+	runCmd.Flags().String(
+		flagMiner,
+		node.DefaultMiner,
+		"miner account of this node to receive block rewards")
 
 	return runCmd
 }

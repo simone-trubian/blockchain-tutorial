@@ -25,15 +25,13 @@ var migrateCmd = func() *cobra.Command {
 			pendingBlock := node.NewPendingBlock(
 				database.Hash{},
 				state.NextBlockNumber(),
+				database.NewAccount("simone"),
 				[]database.Tx{
 					database.NewTx("simone", "simone", 3, ""),
-					database.NewTx("simone", "simone", 700, "reward"),
 					database.NewTx("simone", "tanya", 2000, ""),
-					database.NewTx("simone", "simone", 100, "reward"),
 					database.NewTx("tanya", "simone", 1, ""),
 					database.NewTx("tanya", "ugo", 1000, ""),
 					database.NewTx("tanya", "simone", 50, ""),
-					database.NewTx("simone", "simone", 600, "reward"),
 					database.NewTx("simone", "andrej", 24700, "reward"),
 				},
 			)
