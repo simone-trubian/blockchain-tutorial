@@ -12,6 +12,9 @@ const flagDataDir = "datadir"
 const flagPort = "port"
 const flagIP = "ip"
 const flagMiner = "miner"
+const flagBootstrapAcc = "bootstrap-account"
+const flagBootstrapIp = "bootstrap-ip"
+const flagBootstrapPort = "bootstrap-port"
 
 func main() {
 	var sbCmd = &cobra.Command{
@@ -23,6 +26,7 @@ func main() {
 	sbCmd.AddCommand(versionCmd)
 	sbCmd.AddCommand(runCmd())
 	sbCmd.AddCommand(balancesCmd())
+	sbCmd.AddCommand(walletCmd())
 	sbCmd.AddCommand(migrateCmd())
 
 	err := sbCmd.Execute()

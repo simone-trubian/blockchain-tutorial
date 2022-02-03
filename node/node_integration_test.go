@@ -9,6 +9,7 @@ import (
 
 	"github.com/simone-trubian/blockchain-tutorial/database"
 	"github.com/simone-trubian/blockchain-tutorial/fs"
+	"github.com/simone-trubian/blockchain-tutorial/wallet"
 )
 
 func TestNode_Run(t *testing.T) {
@@ -18,7 +19,7 @@ func TestNode_Run(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	n := New(datadir, "127.0.0.1", 8085, database.NewAccount("andrej"), PeerNode{})
+	n := New(datadir, "127.0.0.1", 8085, database.NewAccount(wallet.AndrejAccount), PeerNode{})
 
 	ctx, _ := context.WithTimeout(context.Background(), time.Second*5)
 	err = n.Run(ctx)
@@ -28,6 +29,9 @@ func TestNode_Run(t *testing.T) {
 }
 
 func TestNode_Mining(t *testing.T) {
+	andrej := database.NewAccount(wallet.AndrejAccount)
+	babayaga := database.NewAccount(wallet.BabaYagaAccount)
+
 	// Remove the test directory if it already exists
 	datadir := getTestDataDirPath()
 	err := fs.RemoveDir(datadir)
@@ -47,7 +51,7 @@ func TestNode_Mining(t *testing.T) {
 
 	// Construct a new Node instance and configure
 	// Andrej as a miner
-	n := New(datadir, nInfo.IP, nInfo.Port, database.NewAccount("andrej"), nInfo)
+	n := New(datadir, nInfo.IP, nInfo.Port, andrej, nInfo)
 
 	// Allow the mining to run for 30 mins, in the worst case
 	ctx, closeNode := context.WithTimeout(
@@ -59,7 +63,7 @@ func TestNode_Mining(t *testing.T) {
 	// because the n.Run() few lines below is a blocking call
 	go func() {
 		time.Sleep(time.Second * miningIntervalSeconds / 3)
-		tx := database.NewTx("andrej", "babayaga", 1, "")
+		tx := database.NewTx(andrej, babayaga, 1, "")
 
 		_ = n.AddPendingTX(tx, nInfo)
 	}()
@@ -68,7 +72,7 @@ func TestNode_Mining(t *testing.T) {
 	// that it came in - while the first TX is being mined
 	go func() {
 		time.Sleep(time.Second*miningIntervalSeconds + 2)
-		tx := database.NewTx("andrej", "babayaga", 2, "")
+		tx := database.NewTx(andrej, babayaga, 2, "")
 
 		_ = n.AddPendingTX(tx, nInfo)
 	}()
@@ -97,6 +101,9 @@ func TestNode_Mining(t *testing.T) {
 }
 
 func TestNode_MiningStopsOnNewSyncedBlock(t *testing.T) {
+	andrej := database.NewAccount(wallet.AndrejAccount)
+	babayaga := database.NewAccount(wallet.BabaYagaAccount)
+
 	// Remove the test directory if it already exists
 	datadir := getTestDataDirPath()
 	err := fs.RemoveDir(datadir)
@@ -114,22 +121,19 @@ func TestNode_MiningStopsOnNewSyncedBlock(t *testing.T) {
 		true,
 	)
 
-	andrejAcc := database.NewAccount("andrej")
-	babayagaAcc := database.NewAccount("babayaga")
-
-	n := New(datadir, nInfo.IP, nInfo.Port, babayagaAcc, nInfo)
+	n := New(datadir, nInfo.IP, nInfo.Port, babayaga, nInfo)
 
 	// Allow the test to run for 30 mins, in the worst case
 	ctx, closeNode := context.WithTimeout(context.Background(), time.Minute*30)
 
-	tx1 := database.NewTx("andrej", "babayaga", 1, "")
-	tx2 := database.NewTx("andrej", "babayaga", 2, "")
+	tx1 := database.NewTx(andrej, babayaga, 1, "")
+	tx2 := database.NewTx(andrej, babayaga, 2, "")
 	tx2Hash, _ := tx2.Hash()
 
 	// Pre-mine a valid block without running the `n.Run()`
 	// with Andrej as a miner who will receive the block reward,
 	// to simulate the block came on the fly from another peer
-	validPreMinedPb := NewPendingBlock(database.Hash{}, 0, andrejAcc, []database.Tx{tx1})
+	validPreMinedPb := NewPendingBlock(database.Hash{}, 0, andrej, []database.Tx{tx1})
 	validSyncedBlock, err := Mine(ctx, validPreMinedPb)
 	if err != nil {
 		t.Fatal(err)
@@ -204,15 +208,15 @@ func TestNode_MiningStopsOnNewSyncedBlock(t *testing.T) {
 		// Take a snapshot of the DB balances
 		// before the mining is finished and the 2 blocks
 		// are created.
-		startingAndrejBalance := n.state.Balances[andrejAcc]
-		startingBabaYagaBalance := n.state.Balances[babayagaAcc]
+		startingAndrejBalance := n.state.Balances[andrej]
+		startingBabaYagaBalance := n.state.Balances[babayaga]
 
 		// Wait until the 30 mins timeout is reached or
 		// the 2 blocks got already mined and the closeNode() was triggered
 		<-ctx.Done()
 
-		endAndrejBalance := n.state.Balances[andrejAcc]
-		endBabaYagaBalance := n.state.Balances[babayagaAcc]
+		endAndrejBalance := n.state.Balances[andrej]
+		endBabaYagaBalance := n.state.Balances[babayaga]
 
 		// In TX1 Andrej transferred 1 TBB token to BabaYaga
 		// In TX2 Andrej transferred 2 TBB tokens to BabaYaga

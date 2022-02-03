@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/simone-trubian/blockchain-tutorial/database"
 	"github.com/simone-trubian/blockchain-tutorial/fs"
 )
@@ -14,11 +15,11 @@ type PendingBlock struct {
 	parent database.Hash
 	number uint64
 	time   uint64
-	miner  database.Account
+	miner  common.Address
 	txs    []database.Tx
 }
 
-func NewPendingBlock(parent database.Hash, number uint64, miner database.Account, txs []database.Tx) PendingBlock {
+func NewPendingBlock(parent database.Hash, number uint64, miner common.Address, txs []database.Tx) PendingBlock {
 	return PendingBlock{parent, number, uint64(time.Now().Unix()), miner, txs}
 }
 
@@ -62,7 +63,7 @@ func Mine(ctx context.Context, pb PendingBlock) (database.Block, error) {
 	fmt.Printf("\tHeight: '%v'\n", block.Header.Number)
 	fmt.Printf("\tNonce: '%v'\n", block.Header.Nonce)
 	fmt.Printf("\tCreated: '%v'\n", block.Header.Time)
-	fmt.Printf("\tMiner: '%v'\n", block.Header.Miner)
+	fmt.Printf("\tMiner: '%v'\n", block.Header.Miner.String())
 	fmt.Printf("\tParent: '%v'\n\n", block.Header.Parent.Hex())
 
 	fmt.Printf("\tAttempt: '%v'\n", attempt)
