@@ -1,4 +1,4 @@
-# The Blockchain Bar
+# The Blockchain Tutorial
 
 ## Install
 ```
