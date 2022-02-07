@@ -9,17 +9,17 @@ go install ./cmd/...
 ## Usage
 ### List all possible commands
 ```
-tbb help
+sb help
 ```
 
-### Run TBB blockchain
+### Run sb blockchain
 ```
-tbb run --datadir=~/.tbb
+sb run --datadir=~/.sb
 ```
 
 ### Create a new account
 ```
-tbb wallet new-account --datadir=~/.tbb 
+sb wallet new-account --datadir=~/.sb 
 ```
 
 ## HTTP Usage
@@ -48,7 +48,7 @@ go install ./cmd/...
 
 To cross-compile:
 ```
-xgo --targets=linux/amd64 ./cmd/tbb
+xgo --targets=linux/amd64 ./cmd/sb
 ```
 
 ## Tests
@@ -59,17 +59,17 @@ go test -v -p=1 -timeout=0 ./...
 
 **Note:** Majority are integration tests and take time. Expect the test suite to finish in ~30 mins. 
 
-## Deploy to official TBB server
+## Deploy to official sb server
 ```
-ssh tbb
-sudo supervisorctl stop tbb
-sudo rm /usr/local/bin/tbb
-sudo rm /home/ec2-user/tbb
-xgo --targets=linux/amd64 ./cmd/tbb
-scp -i ~/.ssh/tbb_aws.pem tbb-linux-amd64 ec2-user@ec2-18-184-213-146.eu-central-1.compute.amazonaws.com:/home/ec2-user/tbb
-ssh tbb
-chmod a+x /home/ec2-user/tbb
-sudo ln -s /home/ec2-user/tbb /usr/local/bin/tbb
-tbb version
-sudo supervisorctl start tbb
+ssh sb
+sudo supervisorctl stop sb
+sudo rm /usr/local/bin/sb
+sudo rm /home/ec2-user/sb
+xgo --targets=linux/amd64 ./cmd/sb
+scp -i ~/.ssh/sb_aws.pem sb-linux-amd64 ec2-user@ec2-18-184-213-146.eu-central-1.compute.amazonaws.com:/home/ec2-user/sb
+ssh sb
+chmod a+x /home/ec2-user/sb
+sudo ln -s /home/ec2-user/sb /usr/local/bin/sb
+sb version
+sudo supervisorctl start sb
 ```
