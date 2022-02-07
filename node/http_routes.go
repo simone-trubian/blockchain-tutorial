@@ -47,7 +47,8 @@ type AddPeerRes struct {
 	Error   string `json:"error"`
 }
 
-func listBalancesHandler(w http.ResponseWriter, r *http.Request, state *database.State) {
+func listBalancesHandler(
+	w http.ResponseWriter, r *http.Request, state *database.State) {
 	writeRes(w, BalancesRes{state.LatestBlockHash(), state.Balances})
 }
 
@@ -67,13 +68,16 @@ func txAddHandler(w http.ResponseWriter, r *http.Request, node *Node) {
 	}
 
 	if req.FromPwd == "" {
-		writeErrRes(w, fmt.Errorf("password to decrypt the %s account is required. 'from_pwd' is empty", from.String()))
+		writeErrRes(w, fmt.Errorf(
+			"password to decrypt the %s account is required. 'from_pwd' is empty",
+			from.String()))
 		return
 	}
 
 	tx := database.NewTx(from, database.NewAccount(req.To), req.Value, req.Data)
 
-	signedTx, err := wallet.SignTxWithKeystoreAccount(tx, from, req.FromPwd, wallet.GetKeystoreDirPath(node.dataDir))
+	signedTx, err := wallet.SignTxWithKeystoreAccount(
+		tx, from, req.FromPwd, wallet.GetKeystoreDirPath(node.dataDir))
 	if err != nil {
 		writeErrRes(w, err)
 		return
@@ -129,7 +133,8 @@ func addPeerHandler(w http.ResponseWriter, r *http.Request, node *Node) {
 		return
 	}
 
-	peer := NewPeerNode(peerIP, peerPort, false, database.NewAccount(minerRaw), true)
+	peer := NewPeerNode(
+		peerIP, peerPort, false, database.NewAccount(minerRaw), true)
 
 	node.AddPeer(peer)
 

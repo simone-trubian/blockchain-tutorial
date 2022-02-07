@@ -23,7 +23,8 @@ func TestValidBlockHash(t *testing.T) {
 
 	isValid := database.IsBlockHashValid(hash)
 	if !isValid {
-		t.Fatalf("hash '%s' starting with 6 zeroes is suppose to be valid", hexHash)
+		t.Fatalf(
+			"hash '%s' starting with 6 zeroes is suppose to be valid", hexHash)
 	}
 }
 
@@ -105,8 +106,9 @@ func generateKey() (*ecdsa.PrivateKey, ecdsa.PublicKey, common.Address, error) {
 	return privKey, pubKey, account, nil
 }
 
-func createRandomPendingBlock(privKey *ecdsa.PrivateKey, acc common.Address) (PendingBlock, error) {
-	tx := database.NewTx(acc, database.NewAccount(testKsBabaYagaAccount), 1, "")
+func createRandomPendingBlock(
+	privKey *ecdsa.PrivateKey, acc common.Address) (PendingBlock, error) {
+	tx := database.NewTx(acc, database.NewAccount(testKsTanyaAccount), 1, "")
 	signedTx, err := wallet.SignTx(tx, privKey)
 	if err != nil {
 		return PendingBlock{}, err

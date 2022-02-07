@@ -33,12 +33,16 @@ func (n *Node) doSync() {
 			continue
 		}
 
-		fmt.Printf("Searching for new Peers and their Blocks and Peers: '%s'\n", peer.TcpAddress())
+		fmt.Printf(
+			"Searching for new Peers and their Blocks and Peers: '%s'\n",
+			peer.TcpAddress())
 
 		status, err := queryPeerStatus(peer)
 		if err != nil {
 			fmt.Printf("ERROR: %s\n", err)
-			fmt.Printf("Peer '%s' was removed from KnownPeers\n", peer.TcpAddress())
+			fmt.Printf(
+				"Peer '%s' was removed from KnownPeers\n",
+				peer.TcpAddress())
 
 			n.RemovePeer(peer)
 
@@ -94,7 +98,10 @@ func (n *Node) syncBlocks(peer PeerNode, status StatusRes) error {
 	if localBlockNumber == 0 && status.Number == 0 {
 		newBlocksCount = 1
 	}
-	fmt.Printf("Found %d new blocks from Peer %s\n", newBlocksCount, peer.TcpAddress())
+	fmt.Printf(
+		"Found %d new blocks from Peer %s\n",
+		newBlocksCount,
+		peer.TcpAddress())
 
 	blocks, err := fetchBlocksFromPeer(peer, n.state.LatestBlockHash())
 	if err != nil {
@@ -193,7 +200,9 @@ func queryPeerStatus(peer PeerNode) (StatusRes, error) {
 	return statusRes, nil
 }
 
-func fetchBlocksFromPeer(peer PeerNode, fromBlock database.Hash) ([]database.Block, error) {
+func fetchBlocksFromPeer(
+	peer PeerNode,
+	fromBlock database.Hash) ([]database.Block, error) {
 	fmt.Printf("Importing blocks from Peer %s...\n", peer.TcpAddress())
 
 	url := fmt.Sprintf(

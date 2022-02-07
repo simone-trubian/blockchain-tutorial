@@ -33,7 +33,8 @@ func walletNewAccountCmd() *cobra.Command {
 		Use:   "new-account",
 		Short: "Creates a new account with a new set of a elliptic-curve Private + Public keys.",
 		Run: func(cmd *cobra.Command, args []string) {
-			password := getPassPhrase("Please enter a password to encrypt the new wallet:", true)
+			password := getPassPhrase(
+				"Please enter a password to encrypt the new wallet:", true)
 
 			dataDir := getDataDirFromCmd(cmd)
 
@@ -54,17 +55,19 @@ func walletNewAccountCmd() *cobra.Command {
 
 func getPassPhrase(prompt string, confirmation bool) string {
 	fmt.Println(prompt)
+	fmt.Println("Please enter password")
 	bytePassword, err := term.ReadPassword(int(syscall.Stdin))
 	if err != nil {
 		utils.Fatalf("Failed to read password: %v", err)
 	}
 
 	if confirmation {
+		fmt.Println("Please confirm password")
 		confirm, err := term.ReadPassword(int(syscall.Stdin))
 		if err != nil {
 			utils.Fatalf("Failed to read password confirmation: %v", err)
 		}
-		if bytes.Compare(bytePassword, confirm) != 0 {
+		if !bytes.Equal(bytePassword, confirm) {
 			utils.Fatalf("Passwords do not match")
 		}
 	}

@@ -12,9 +12,9 @@ import (
 	"github.com/simone-trubian/blockchain-tutorial/wallet"
 )
 
-const DefaultBootstrapIp = "node.tbb.web3.coach"
+const DefaultBootstrapIp = "node.sb.web3.coach"
 const DefaultBootstrapPort = 8080
-const DefaultBootstrapAcc = wallet.AndrejAccount
+const DefaultBootstrapAcc = wallet.SimoneAccount
 const DefaultMiner = "0x0000000000000000000000000000000000000000"
 const DefaultIP = "127.0.0.1"
 const DefaultHTTPort = 8080
@@ -57,7 +57,12 @@ type Node struct {
 	isMining        bool
 }
 
-func New(dataDir string, ip string, port uint64, acc common.Address, bootstrap PeerNode) *Node {
+func New(
+	dataDir string,
+	ip string,
+	port uint64,
+	acc common.Address,
+	bootstrap PeerNode) *Node {
 	knownPeers := make(map[string]PeerNode)
 	knownPeers[bootstrap.TcpAddress()] = bootstrap
 
@@ -73,12 +78,17 @@ func New(dataDir string, ip string, port uint64, acc common.Address, bootstrap P
 	}
 }
 
-func NewPeerNode(ip string, port uint64, isBootstrap bool, acc common.Address, connected bool) PeerNode {
+func NewPeerNode(
+	ip string,
+	port uint64,
+	isBootstrap bool,
+	acc common.Address,
+	connected bool) PeerNode {
 	return PeerNode{ip, port, isBootstrap, acc, connected}
 }
 
 func (n *Node) Run(ctx context.Context) error {
-	fmt.Println(fmt.Sprintf("Listening on: %s:%d", n.info.IP, n.info.Port))
+	fmt.Printf("Listening on: %s:%d", n.info.IP, n.info.Port)
 
 	state, err := database.NewStateFromDisk(n.dataDir)
 	if err != nil {
@@ -163,7 +173,8 @@ func (n *Node) mine(ctx context.Context) error {
 		case block, _ := <-n.newSyncedBlocks:
 			if n.isMining {
 				blockHash, _ := block.Hash()
-				fmt.Printf("\nPeer mined next Block '%s' faster :(\n", blockHash.Hex())
+				fmt.Printf(
+					"\nPeer mined next Block '%s' faster :(\n", blockHash.Hex())
 
 				n.removeMinedPendingTXs(block)
 				stopCurrentMining()
@@ -248,7 +259,8 @@ func (n *Node) AddPendingTX(tx database.SignedTx, fromPeer PeerNode) error {
 	_, isArchived := n.archivedTXs[txHash.Hex()]
 
 	if !isAlreadyPending && !isArchived {
-		fmt.Printf("Added Pending TX %s from Peer %s\n", txJson, fromPeer.TcpAddress())
+		fmt.Printf(
+			"Added Pending TX %s from Peer %s\n", txJson, fromPeer.TcpAddress())
 		n.pendingTXs[txHash.Hex()] = tx
 		n.newPendingTXs <- tx
 	}

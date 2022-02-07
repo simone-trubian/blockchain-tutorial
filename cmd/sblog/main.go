@@ -13,7 +13,7 @@ type Tx struct {
 func main() {
 	// Extra touch pre-defining the Map length to avoid reallocation
 	txMap := make(map[string]Tx, 3)
-	txMap["tx1"] = Tx{"andrej", "babayaga", 10}
+	txMap["tx1"] = Tx{"simone", "tanya", 10}
 
 	getTXsAsSlice(txMap)
 }

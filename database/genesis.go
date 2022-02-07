@@ -10,7 +10,7 @@ import (
 var genesisJson = `
 {
   "genesis_time": "2019-03-18T00:00:00.000000000Z",
-  "chain_id": "the-blockchain-bar-ledger",
+  "chain_id": "simone-blockchain-ledger",
   "balances": {
     "0x22ba1F80452E6220c7cc6ea2D1e3EEDDaC5F694A": 1000000
   }

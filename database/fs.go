@@ -47,18 +47,6 @@ func fileExist(filePath string) bool {
 	return true
 }
 
-func dirExists(path string) (bool, error) {
-	_, err := os.Stat(path)
-	if err == nil {
-		return true, nil
-	}
-	if os.IsNotExist(err) {
-		return false, nil
-	}
-
-	return true, err
-}
-
 func writeEmptyBlocksDbToDisk(path string) error {
 	return ioutil.WriteFile(path, []byte(""), os.ModePerm)
 }

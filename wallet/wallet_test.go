@@ -15,8 +15,8 @@ import (
 )
 
 // The password for testing keystore files:
-// 	./node/test_andrej--3eb92807f1f91a8d4d85bc908c7f86dcddb1df57
-// 	./node/test_babayaga--6fdc0d8d15ae6b4ebf45c52fd2aafbcbb19a65c8
+// 	./node/test_simone--3eb92807f1f91a8d4d85bc908c7f86dcddb1df57
+// 	./node/test_tanya--6fdc0d8d15ae6b4ebf45c52fd2aafbcbb19a65c8
 const testKeystoreAccountsPwd = "security123"
 
 func TestSign(t *testing.T) {
@@ -59,21 +59,21 @@ func TestSignTxWithKeystoreAccount(t *testing.T) {
 	}
 	defer fs.RemoveDir(tmpDir)
 
-	andrej, err := NewKeystoreAccount(tmpDir, testKeystoreAccountsPwd)
+	simone, err := NewKeystoreAccount(tmpDir, testKeystoreAccountsPwd)
 	if err != nil {
 		t.Error(err)
 		return
 	}
 
-	babaYaga, err := NewKeystoreAccount(tmpDir, testKeystoreAccountsPwd)
+	tanya, err := NewKeystoreAccount(tmpDir, testKeystoreAccountsPwd)
 	if err != nil {
 		t.Error(err)
 		return
 	}
 
-	tx := database.NewTx(andrej, babaYaga, 100, "")
+	tx := database.NewTx(simone, tanya, 100, "")
 
-	signedTx, err := SignTxWithKeystoreAccount(tx, andrej, testKeystoreAccountsPwd, GetKeystoreDirPath(tmpDir))
+	signedTx, err := SignTxWithKeystoreAccount(tx, simone, testKeystoreAccountsPwd, GetKeystoreDirPath(tmpDir))
 	if err != nil {
 		t.Error(err)
 		return
@@ -105,13 +105,13 @@ func TestSignForgedTxWithKeystoreAccount(t *testing.T) {
 		return
 	}
 
-	babaYaga, err := NewKeystoreAccount(tmpDir, testKeystoreAccountsPwd)
+	tanya, err := NewKeystoreAccount(tmpDir, testKeystoreAccountsPwd)
 	if err != nil {
 		t.Error(err)
 		return
 	}
 
-	forgedTx := database.NewTx(babaYaga, hacker, 100, "")
+	forgedTx := database.NewTx(tanya, hacker, 100, "")
 
 	signedTx, err := SignTxWithKeystoreAccount(forgedTx, hacker, testKeystoreAccountsPwd, GetKeystoreDirPath(tmpDir))
 	if err != nil {

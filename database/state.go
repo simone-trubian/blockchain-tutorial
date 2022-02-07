@@ -165,11 +165,19 @@ func applyBlock(b Block, s *State) error {
 	nextExpectedBlockNumber := s.latestBlock.Header.Number + 1
 
 	if s.hasGenesisBlock && b.Header.Number != nextExpectedBlockNumber {
-		return fmt.Errorf("next expected block must be '%d' not '%d'", nextExpectedBlockNumber, b.Header.Number)
+		return fmt.Errorf(
+			"next expected block must be '%d' not '%d'",
+			nextExpectedBlockNumber,
+			b.Header.Number)
 	}
 
-	if s.hasGenesisBlock && s.latestBlock.Header.Number > 0 && !reflect.DeepEqual(b.Header.Parent, s.latestBlockHash) {
-		return fmt.Errorf("next block parent hash must be '%x' not '%x'", s.latestBlockHash, b.Header.Parent)
+	if s.hasGenesisBlock &&
+		s.latestBlock.Header.Number > 0 &&
+		!reflect.DeepEqual(b.Header.Parent, s.latestBlockHash) {
+		return fmt.Errorf(
+			"next block parent hash must be '%x' not '%x'",
+			s.latestBlockHash,
+			b.Header.Parent)
 	}
 
 	hash, err := b.Hash()
@@ -217,7 +225,11 @@ func applyTx(tx SignedTx, s *State) error {
 	}
 
 	if tx.Value > s.Balances[tx.From] {
-		return fmt.Errorf("wrong TX. Sender '%s' balance is %d TBB. Tx cost is %d TBB", tx.From.String(), s.Balances[tx.From], tx.Value)
+		return fmt.Errorf(
+			"wrong TX. Sender '%s' balance is %d SB. Tx cost is %d SB",
+			tx.From.String(),
+			s.Balances[tx.From],
+			tx.Value)
 	}
 
 	s.Balances[tx.From] -= tx.Value

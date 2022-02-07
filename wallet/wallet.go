@@ -15,14 +15,15 @@ import (
 )
 
 const keystoreDirName = "keystore"
-const AndrejAccount = "0x22ba1F80452E6220c7cc6ea2D1e3EEDDaC5F694A"
+const SimoneAccount = "0x22ba1F80452E6220c7cc6ea2D1e3EEDDaC5F694A"
 
 func GetKeystoreDirPath(dataDir string) string {
 	return filepath.Join(dataDir, keystoreDirName)
 }
 
 func NewKeystoreAccount(dataDir, password string) (common.Address, error) {
-	ks := keystore.NewKeyStore(GetKeystoreDirPath(dataDir), keystore.StandardScryptN, keystore.StandardScryptP)
+	ks := keystore.NewKeyStore(GetKeystoreDirPath(
+		dataDir), keystore.StandardScryptN, keystore.StandardScryptP)
 	acc, err := ks.NewAccount(password)
 	if err != nil {
 		return common.Address{}, err
@@ -31,8 +32,13 @@ func NewKeystoreAccount(dataDir, password string) (common.Address, error) {
 	return acc.Address, nil
 }
 
-func SignTxWithKeystoreAccount(tx database.Tx, acc common.Address, pwd, keystoreDir string) (database.SignedTx, error) {
-	ks := keystore.NewKeyStore(keystoreDir, keystore.StandardScryptN, keystore.StandardScryptP)
+func SignTxWithKeystoreAccount(
+	tx database.Tx,
+	acc common.Address,
+	pwd,
+	keystoreDir string) (database.SignedTx, error) {
+	ks := keystore.NewKeyStore(
+		keystoreDir, keystore.StandardScryptN, keystore.StandardScryptP)
 	ksAccount, err := ks.Find(accounts.Account{Address: acc})
 	if err != nil {
 		return database.SignedTx{}, err
@@ -56,7 +62,8 @@ func SignTxWithKeystoreAccount(tx database.Tx, acc common.Address, pwd, keystore
 	return signedTx, nil
 }
 
-func SignTx(tx database.Tx, privKey *ecdsa.PrivateKey) (database.SignedTx, error) {
+func SignTx(
+	tx database.Tx, privKey *ecdsa.PrivateKey) (database.SignedTx, error) {
 	rawTx, err := tx.Encode()
 	if err != nil {
 		return database.SignedTx{}, err
@@ -79,7 +86,10 @@ func Sign(msg []byte, privKey *ecdsa.PrivateKey) (sig []byte, err error) {
 	}
 
 	if len(sig) != crypto.SignatureLength {
-		return nil, fmt.Errorf("wrong size for signature: got %d, want %d", len(sig), crypto.SignatureLength)
+		return nil, fmt.Errorf(
+			"wrong size for signature: got %d, want %d",
+			len(sig),
+			crypto.SignatureLength)
 	}
 
 	return sig, nil
@@ -90,7 +100,8 @@ func Verify(msg, sig []byte) (*ecdsa.PublicKey, error) {
 
 	recoveredPubKey, err := crypto.SigToPub(msgHash[:], sig)
 	if err != nil {
-		return nil, fmt.Errorf("unable to verify message signature. %s", err.Error())
+		return nil, fmt.Errorf(
+			"unable to verify message signature. %s", err.Error())
 	}
 
 	return recoveredPubKey, nil
