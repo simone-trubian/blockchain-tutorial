@@ -1,4 +1,4 @@
-# The Blockchain Bar
+# The Blockchain Tutorial
 
 ## Install
 ```
@@ -57,19 +57,4 @@ Run all tests with verbosity but one at a time, without timeout, to avoid ports 
 go test -v -p=1 -timeout=0 ./...
 ```
 
-**Note:** Majority are integration tests and take time. Expect the test suite to finish in ~30 mins. 
-
-## Deploy to official sb server
-```
-ssh sb
-sudo supervisorctl stop sb
-sudo rm /usr/local/bin/sb
-sudo rm /home/ec2-user/sb
-xgo --targets=linux/amd64 ./cmd/sb
-scp -i ~/.ssh/sb_aws.pem sb-linux-amd64 ec2-user@ec2-18-184-213-146.eu-central-1.compute.amazonaws.com:/home/ec2-user/sb
-ssh sb
-chmod a+x /home/ec2-user/sb
-sudo ln -s /home/ec2-user/sb /usr/local/bin/sb
-sb version
-sudo supervisorctl start sb
-```
+**Note:** The majority of tests are integration tests and take time. Expect the test suite to finish in ~30 mins. 
