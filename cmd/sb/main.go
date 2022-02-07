@@ -27,7 +27,6 @@ func main() {
 	sbCmd.AddCommand(runCmd())
 	sbCmd.AddCommand(balancesCmd())
 	sbCmd.AddCommand(walletCmd())
-	sbCmd.AddCommand(migrateCmd())
 
 	err := sbCmd.Execute()
 	if err != nil {

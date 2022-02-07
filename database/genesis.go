@@ -2,8 +2,9 @@ package database
 
 import (
 	"encoding/json"
-	"github.com/ethereum/go-ethereum/common"
 	"io/ioutil"
+
+	"github.com/ethereum/go-ethereum/common"
 )
 
 var genesisJson = `
@@ -15,25 +16,25 @@ var genesisJson = `
   }
 }`
 
-type genesis struct {
+type Genesis struct {
 	Balances map[common.Address]uint `json:"balances"`
 }
 
-func loadGenesis(path string) (genesis, error) {
+func loadGenesis(path string) (Genesis, error) {
 	content, err := ioutil.ReadFile(path)
 	if err != nil {
-		return genesis{}, err
+		return Genesis{}, err
 	}
 
-	var loadedGenesis genesis
+	var loadedGenesis Genesis
 	err = json.Unmarshal(content, &loadedGenesis)
 	if err != nil {
-		return genesis{}, err
+		return Genesis{}, err
 	}
 
 	return loadedGenesis, nil
 }
 
-func writeGenesisToDisk(path string) error {
-	return ioutil.WriteFile(path, []byte(genesisJson), 0644)
+func writeGenesisToDisk(path string, genesis []byte) error {
+	return ioutil.WriteFile(path, genesis, 0644)
 }

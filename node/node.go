@@ -4,12 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-
-	"github.com/ethereum/go-ethereum/common"
-
 	"net/http"
 	"time"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/simone-trubian/blockchain-tutorial/database"
 	"github.com/simone-trubian/blockchain-tutorial/wallet"
 )
@@ -52,10 +50,10 @@ type Node struct {
 
 	state           *database.State
 	knownPeers      map[string]PeerNode
-	pendingTXs      map[string]database.Tx
-	archivedTXs     map[string]database.Tx
+	pendingTXs      map[string]database.SignedTx
+	archivedTXs     map[string]database.SignedTx
 	newSyncedBlocks chan database.Block
-	newPendingTXs   chan database.Tx
+	newPendingTXs   chan database.SignedTx
 	isMining        bool
 }
 
@@ -67,10 +65,10 @@ func New(dataDir string, ip string, port uint64, acc common.Address, bootstrap P
 		dataDir:         dataDir,
 		info:            NewPeerNode(ip, port, false, acc, true),
 		knownPeers:      knownPeers,
-		pendingTXs:      make(map[string]database.Tx),
-		archivedTXs:     make(map[string]database.Tx),
+		pendingTXs:      make(map[string]database.SignedTx),
+		archivedTXs:     make(map[string]database.SignedTx),
 		newSyncedBlocks: make(chan database.Block),
-		newPendingTXs:   make(chan database.Tx, 10000),
+		newPendingTXs:   make(chan database.SignedTx, 10000),
 		isMining:        false,
 	}
 }
@@ -97,27 +95,29 @@ func (n *Node) Run(ctx context.Context) error {
 	go n.sync(ctx)
 	go n.mine(ctx)
 
-	http.HandleFunc("/balances/list", func(w http.ResponseWriter, r *http.Request) {
+	handler := http.NewServeMux()
+
+	handler.HandleFunc("/balances/list", func(w http.ResponseWriter, r *http.Request) {
 		listBalancesHandler(w, r, state)
 	})
 
-	http.HandleFunc("/tx/add", func(w http.ResponseWriter, r *http.Request) {
+	handler.HandleFunc("/tx/add", func(w http.ResponseWriter, r *http.Request) {
 		txAddHandler(w, r, n)
 	})
 
-	http.HandleFunc(endpointStatus, func(w http.ResponseWriter, r *http.Request) {
+	handler.HandleFunc(endpointStatus, func(w http.ResponseWriter, r *http.Request) {
 		statusHandler(w, r, n)
 	})
 
-	http.HandleFunc(endpointSync, func(w http.ResponseWriter, r *http.Request) {
+	handler.HandleFunc(endpointSync, func(w http.ResponseWriter, r *http.Request) {
 		syncHandler(w, r, n)
 	})
 
-	http.HandleFunc(endpointAddPeer, func(w http.ResponseWriter, r *http.Request) {
+	handler.HandleFunc(endpointAddPeer, func(w http.ResponseWriter, r *http.Request) {
 		addPeerHandler(w, r, n)
 	})
 
-	server := &http.Server{Addr: fmt.Sprintf(":%d", n.info.Port)}
+	server := &http.Server{Addr: fmt.Sprintf(":%d", n.info.Port), Handler: handler}
 
 	go func() {
 		<-ctx.Done()
@@ -233,7 +233,7 @@ func (n *Node) IsKnownPeer(peer PeerNode) bool {
 	return isKnownPeer
 }
 
-func (n *Node) AddPendingTX(tx database.Tx, fromPeer PeerNode) error {
+func (n *Node) AddPendingTX(tx database.SignedTx, fromPeer PeerNode) error {
 	txHash, err := tx.Hash()
 	if err != nil {
 		return err
@@ -256,8 +256,8 @@ func (n *Node) AddPendingTX(tx database.Tx, fromPeer PeerNode) error {
 	return nil
 }
 
-func (n *Node) getPendingTXsAsArray() []database.Tx {
-	txs := make([]database.Tx, len(n.pendingTXs))
+func (n *Node) getPendingTXsAsArray() []database.SignedTx {
+	txs := make([]database.SignedTx, len(n.pendingTXs))
 
 	i := 0
 	for _, tx := range n.pendingTXs {
